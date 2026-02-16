@@ -32,6 +32,8 @@ Copy `.env.example` to `.env.local` and set:
 - **EMAIL_FROM** – sender address (e.g. `Vibe Coding <noreply@yourdomain.com>`)
 - **APP_URL** – public app URL (for confirmation links)
 
+**Note:** `AUTH_SECRET` and `AUTH_URL` are no longer used (auth is env-based admin + iron-session). If they remain in your Vercel project or local `.env` from an older setup, you can remove them.
+
 ### 3. Database
 
 ```bash
