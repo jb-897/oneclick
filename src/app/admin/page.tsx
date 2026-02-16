@@ -1,13 +1,16 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { eq, isNull } from "drizzle-orm";
+import { db } from "@/db/client";
+import { eventSessions, registrations } from "@/db/schema";
+import { REGISTRATION_STATUS } from "@/db/schema";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default async function AdminDashboardPage() {
   const [sessionsCount, registrationsCount, confirmedCount] = await Promise.all([
-    prisma.eventSession.count({ where: { cancelledAt: null } }),
-    prisma.registration.count(),
-    prisma.registration.count({ where: { status: "CONFIRMED" } }),
+    db.$count(eventSessions, isNull(eventSessions.cancelledAt)),
+    db.$count(registrations),
+    db.$count(registrations, eq(registrations.status, REGISTRATION_STATUS.CONFIRMED)),
   ]);
 
   return (

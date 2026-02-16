@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { eq } from "drizzle-orm";
+import { db } from "@/db/client";
+import { eventSessions } from "@/db/schema";
 import { SessionForm } from "@/components/admin/SessionForm";
 
 export const dynamic = "force-dynamic";
@@ -11,13 +13,19 @@ export default async function EditSessionPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const session = await prisma.eventSession.findUnique({
-    where: { id },
-  });
+  const [session] = await db
+    .select()
+    .from(eventSessions)
+    .where(eq(eventSessions.id, id))
+    .limit(1);
   if (!session || session.cancelledAt) notFound();
 
+  const dateStr =
+    typeof session.date === "string"
+      ? session.date.slice(0, 10)
+      : String(session.date).slice(0, 10);
   const defaultValues = {
-    date: session.date.toISOString().slice(0, 10),
+    date: dateStr,
     startTime: session.startTime,
     durationMinutes: session.durationMinutes,
     place: session.place,

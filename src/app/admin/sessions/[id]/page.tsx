@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { eq, asc, desc } from "drizzle-orm";
+import { db } from "@/db/client";
+import { eventSessions, registrations } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,18 +16,21 @@ export default async function AdminSessionDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const session = await prisma.eventSession.findUnique({
-    where: { id },
-  });
+  const [session] = await db
+    .select()
+    .from(eventSessions)
+    .where(eq(eventSessions.id, id))
+    .limit(1);
   if (!session) notFound();
 
-  const registrations = await prisma.registration.findMany({
-    where: { sessionId: id },
-    orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-  });
-  const confirmed = registrations.filter((r) => r.status === "CONFIRMED");
-  const pending = registrations.filter((r) => r.status === "PENDING_CONFIRMATION");
-  const cancelled = registrations.filter((r) => r.status === "CANCELLED");
+  const regList = await db
+    .select()
+    .from(registrations)
+    .where(eq(registrations.sessionId, id))
+    .orderBy(asc(registrations.status), desc(registrations.createdAt));
+  const confirmed = regList.filter((r) => r.status === "CONFIRMED");
+  const pending = regList.filter((r) => r.status === "PENDING_CONFIRMATION");
+  const cancelled = regList.filter((r) => r.status === "CANCELLED");
   const spotsLeft = Math.max(0, session.totalSpots - confirmed.length);
   const isCancelled = !!session.cancelledAt;
 
@@ -82,4 +87,3 @@ export default async function AdminSessionDetailPage({
     </div>
   );
 }
-

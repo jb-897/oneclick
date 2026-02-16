@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { eq, asc } from "drizzle-orm";
+import { count } from "drizzle-orm";
+import { db } from "@/db/client";
+import { eventSessions, registrations } from "@/db/schema";
+import { REGISTRATION_STATUS } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,18 +11,21 @@ import { Badge } from "@/components/ui/badge";
 export const dynamic = "force-dynamic";
 
 export default async function AdminSessionsPage() {
-  const [sessions, confirmedBySession] = await Promise.all([
-    prisma.eventSession.findMany({
-      orderBy: [{ date: "asc" }, { startTime: "asc" }],
-    }),
-    prisma.registration
-      .groupBy({
-        by: ["sessionId"],
-        _count: { id: true },
-        where: { status: "CONFIRMED" },
+  const [sessions, confirmedRows] = await Promise.all([
+    db.select().from(eventSessions).orderBy(asc(eventSessions.date), asc(eventSessions.startTime)),
+    db
+      .select({
+        sessionId: registrations.sessionId,
+        count: count(),
       })
-      .then((rows) => new Map(rows.map((r) => [r.sessionId, r._count.id]))),
+      .from(registrations)
+      .where(eq(registrations.status, REGISTRATION_STATUS.CONFIRMED))
+      .groupBy(registrations.sessionId),
   ]);
+
+  const confirmedBySession = new Map(
+    confirmedRows.map((r) => [r.sessionId, Number(r.count)])
+  );
 
   return (
     <div className="space-y-6">

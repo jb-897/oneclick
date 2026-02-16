@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { Registration } from "@prisma/client";
+import type { Registration } from "@/db/schema";
 
 export function ParticipantsTable({
   confirmed,

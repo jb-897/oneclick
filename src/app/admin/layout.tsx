@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/session";
 import Link from "next/link";
 import { SignOutButton } from "@/components/admin/SignOutButton";
 
@@ -23,7 +23,7 @@ export default async function AdminLayout({
                 </Link>
               </nav>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">{session.user.email}</span>
+                <span className="text-sm text-muted-foreground">{session.email}</span>
                 <SignOutButton />
               </div>
             </div>

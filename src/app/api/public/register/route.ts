@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { eq, and, isNull } from "drizzle-orm";
+import { db } from "@/db/client";
+import { eventSessions, registrations } from "@/db/schema";
 import { registerSchema } from "@/lib/validations/register";
 import { checkRegisterLimit } from "@/lib/rate-limit";
 import { generateConfirmationToken, getConfirmationExpiry } from "@/lib/crypto";
 import { sendConfirmationEmail } from "@/lib/email";
-import { RegistrationStatus } from "@prisma/client";
+import { REGISTRATION_STATUS } from "@/db/schema";
 
 const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
 
@@ -26,9 +28,16 @@ export async function POST(req: Request) {
     }
     const data = parsed.data;
 
-    const session = await prisma.eventSession.findFirst({
-      where: { id: data.sessionId, cancelledAt: null },
-    });
+    const [session] = await db
+      .select()
+      .from(eventSessions)
+      .where(
+        and(
+          eq(eventSessions.id, data.sessionId),
+          isNull(eventSessions.cancelledAt)
+        )
+      )
+      .limit(1);
     if (!session) {
       return NextResponse.json({ error: "Session not found", code: "NOT_FOUND" }, { status: 404 });
     }
@@ -39,9 +48,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const confirmedCount = await prisma.registration.count({
-      where: { sessionId: data.sessionId, status: "CONFIRMED" },
-    });
+    const confirmedCount = await db.$count(registrations, and(
+      eq(registrations.sessionId, data.sessionId),
+      eq(registrations.status, REGISTRATION_STATUS.CONFIRMED)
+    ));
     if (confirmedCount >= session.totalSpots) {
       return NextResponse.json(
         { error: "Session is full", code: "FULL" },
@@ -49,19 +59,24 @@ export async function POST(req: Request) {
       );
     }
 
-    const existing = await prisma.registration.findUnique({
-      where: {
-        sessionId_email: { sessionId: data.sessionId, email: data.email },
-      },
-    });
+    const [existing] = await db
+      .select()
+      .from(registrations)
+      .where(
+        and(
+          eq(registrations.sessionId, data.sessionId),
+          eq(registrations.email, data.email)
+        )
+      )
+      .limit(1);
     if (existing) {
-      if (existing.status === "CONFIRMED") {
+      if (existing.status === REGISTRATION_STATUS.CONFIRMED) {
         return NextResponse.json(
           { error: "You are already registered for this session", code: "DUPLICATE" },
           { status: 409 }
         );
       }
-      if (existing.status === "PENDING_CONFIRMATION") {
+      if (existing.status === REGISTRATION_STATUS.PENDING_CONFIRMATION) {
         return NextResponse.json(
           { error: "A confirmation email was already sent. Check your inbox or request a new link.", code: "PENDING" },
           { status: 409 }
@@ -72,9 +87,9 @@ export async function POST(req: Request) {
     const { raw, hash } = generateConfirmationToken();
     const expiresAt = getConfirmationExpiry();
 
-    await prisma.registration.upsert({
-      where: { sessionId_email: { sessionId: data.sessionId, email: data.email } },
-      create: {
+    await db
+      .insert(registrations)
+      .values({
         sessionId: data.sessionId,
         email: data.email,
         name: data.name,
@@ -83,22 +98,24 @@ export async function POST(req: Request) {
         group: data.group,
         university: data.university,
         hasCodingExperience: data.hasCodingExperience,
-        status: RegistrationStatus.PENDING_CONFIRMATION,
+        status: REGISTRATION_STATUS.PENDING_CONFIRMATION,
         confirmationTokenHash: hash,
         confirmationTokenExpiresAt: expiresAt,
-      },
-      update: {
-        name: data.name,
-        surname: data.surname,
-        year: data.year,
-        group: data.group,
-        university: data.university,
-        hasCodingExperience: data.hasCodingExperience,
-        status: RegistrationStatus.PENDING_CONFIRMATION,
-        confirmationTokenHash: hash,
-        confirmationTokenExpiresAt: expiresAt,
-      },
-    });
+      })
+      .onConflictDoUpdate({
+        target: [registrations.sessionId, registrations.email],
+        set: {
+          name: data.name,
+          surname: data.surname,
+          year: data.year,
+          group: data.group,
+          university: data.university,
+          hasCodingExperience: data.hasCodingExperience,
+          status: REGISTRATION_STATUS.PENDING_CONFIRMATION,
+          confirmationTokenHash: hash,
+          confirmationTokenExpiresAt: expiresAt,
+        },
+      });
 
     const confirmLink = `${APP_URL}/api/public/confirm?token=${encodeURIComponent(raw)}`;
     const sessionDate = new Date(session.date).toLocaleDateString("en-GB", {

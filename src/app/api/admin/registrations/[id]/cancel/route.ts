@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { RegistrationStatus } from "@prisma/client";
+import { requireAdmin } from "@/lib/session";
+import { eq } from "drizzle-orm";
+import { db } from "@/db/client";
+import { registrations, auditLogs } from "@/db/schema";
+import { REGISTRATION_STATUS } from "@/db/schema";
 
 export async function POST(
   _req: Request,
@@ -13,27 +15,27 @@ export async function POST(
   }
   const { id } = await params;
   try {
-    const reg = await prisma.registration.findUnique({
-      where: { id },
-    });
+    const [reg] = await db
+      .select()
+      .from(registrations)
+      .where(eq(registrations.id, id))
+      .limit(1);
     if (!reg) {
       return NextResponse.json({ error: "Not found", code: "NOT_FOUND" }, { status: 404 });
     }
-    await prisma.$transaction([
-      prisma.registration.update({
-        where: { id },
-        data: { status: RegistrationStatus.CANCELLED },
-      }),
-      prisma.auditLog.create({
-        data: {
-          userId: adminSession.user.id,
-          action: "REGISTRATION_MANUAL_CANCEL",
-          entityType: "Registration",
-          entityId: id,
-          metadata: { sessionId: reg.sessionId, email: reg.email },
-        },
-      }),
-    ]);
+    await db.transaction(async (tx) => {
+      await tx
+        .update(registrations)
+        .set({ status: REGISTRATION_STATUS.CANCELLED })
+        .where(eq(registrations.id, id));
+      await tx.insert(auditLogs).values({
+        userId: adminSession.email,
+        action: "REGISTRATION_MANUAL_CANCEL",
+        entityType: "Registration",
+        entityId: id,
+        metadata: { sessionId: reg.sessionId, email: reg.email },
+      });
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("Manual cancel error:", e);

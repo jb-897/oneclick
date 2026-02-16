@@ -5,7 +5,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { EventSession } from "@prisma/client";
+import type { EventSession } from "@/db/schema";
 
 type SessionWithCount = EventSession & {
   _count?: { registrations: number };

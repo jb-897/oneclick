@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/session";
+import { db } from "@/db/client";
+import { eventSessions } from "@/db/schema";
 import { createSessionSchema } from "@/lib/validations/session";
 
 export async function POST(req: Request) {
@@ -25,9 +26,10 @@ export async function POST(req: Request) {
       ? data.tags.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean)
       : [];
 
-    const event = await prisma.eventSession.create({
-      data: {
-        date: new Date(data.date),
+    const [event] = await db
+      .insert(eventSessions)
+      .values({
+        date: data.date,
         startTime: data.startTime,
         durationMinutes: data.durationMinutes,
         place: data.place,
@@ -37,8 +39,8 @@ export async function POST(req: Request) {
         level: data.level || null,
         tags,
         registrationOpen: data.registrationOpen ?? true,
-      },
-    });
+      })
+      .returning();
     return NextResponse.json(event);
   } catch (e) {
     console.error("Create session error:", e);

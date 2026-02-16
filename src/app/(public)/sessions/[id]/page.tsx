@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { eq, and, isNull } from "drizzle-orm";
+import { db } from "@/db/client";
+import { eventSessions, registrations } from "@/db/schema";
+import { REGISTRATION_STATUS } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,14 +16,17 @@ export default async function SessionDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const session = await prisma.eventSession.findFirst({
-    where: { id, cancelledAt: null },
-  });
+  const [session] = await db
+    .select()
+    .from(eventSessions)
+    .where(and(eq(eventSessions.id, id), isNull(eventSessions.cancelledAt)))
+    .limit(1);
   if (!session) notFound();
 
-  const confirmedCount = await prisma.registration.count({
-    where: { sessionId: id, status: "CONFIRMED" },
-  });
+  const confirmedCount = await db.$count(registrations, and(
+    eq(registrations.sessionId, id),
+    eq(registrations.status, REGISTRATION_STATUS.CONFIRMED)
+  ));
   const spotsLeft = Math.max(0, session.totalSpots - confirmedCount);
   const isOpen =
     !session.cancelledAt &&

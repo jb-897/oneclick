@@ -1,42 +1,38 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { login } from "./actions";
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/admin";
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    formData.set("callbackUrl", callbackUrl);
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
+      const result = await login(formData);
       if (result?.error) {
-        setError("Invalid email or password.");
-        setLoading(false);
-        return;
+        setError(result.error);
+      } else {
+        router.push(callbackUrl);
+        router.refresh();
       }
-      router.push(callbackUrl);
-      router.refresh();
     } catch {
-      setError("Something went wrong.");
+      router.refresh();
     }
     setLoading(false);
   }
@@ -62,8 +58,6 @@ export default function AdminLoginPage() {
                 name="email"
                 type="email"
                 autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="font-mono"
               />
@@ -75,8 +69,6 @@ export default function AdminLoginPage() {
                 name="password"
                 type="password"
                 autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 required
                 className="font-mono"
               />

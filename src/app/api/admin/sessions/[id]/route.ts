@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/session";
+import { eq } from "drizzle-orm";
+import { db } from "@/db/client";
+import { eventSessions } from "@/db/schema";
 import { updateSessionSchema } from "@/lib/validations/session";
 
 export async function PUT(
@@ -23,10 +25,10 @@ export async function PUT(
     }
     const data = parsed.data;
     if (data.cancel) {
-      await prisma.eventSession.update({
-        where: { id },
-        data: { cancelledAt: new Date() },
-      });
+      await db
+        .update(eventSessions)
+        .set({ cancelledAt: new Date() })
+        .where(eq(eventSessions.id, id));
       return NextResponse.json({ ok: true });
     }
     const utilities = data.utilities !== undefined
@@ -40,8 +42,8 @@ export async function PUT(
           : undefined)
       : undefined;
 
-    const updateData: Parameters<typeof prisma.eventSession.update>[0]["data"] = {};
-    if (data.date !== undefined) updateData.date = new Date(data.date);
+    const updateData: Record<string, unknown> = {};
+    if (data.date !== undefined) updateData.date = data.date;
     if (data.startTime !== undefined) updateData.startTime = data.startTime;
     if (data.durationMinutes !== undefined) updateData.durationMinutes = data.durationMinutes;
     if (data.place !== undefined) updateData.place = data.place;
@@ -52,10 +54,10 @@ export async function PUT(
     if (tags !== undefined) updateData.tags = tags;
     if (data.registrationOpen !== undefined) updateData.registrationOpen = data.registrationOpen;
 
-    await prisma.eventSession.update({
-      where: { id },
-      data: updateData,
-    });
+    await db
+      .update(eventSessions)
+      .set(updateData as typeof eventSessions.$inferInsert)
+      .where(eq(eventSessions.id, id));
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("Update session error:", e);
@@ -76,10 +78,10 @@ export async function DELETE(
   }
   const { id } = await params;
   try {
-    await prisma.eventSession.update({
-      where: { id },
-      data: { cancelledAt: new Date() },
-    });
+    await db
+      .update(eventSessions)
+      .set({ cancelledAt: new Date() })
+      .where(eq(eventSessions.id, id));
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("Cancel session error:", e);
