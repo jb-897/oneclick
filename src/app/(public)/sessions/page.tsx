@@ -36,7 +36,7 @@ export default async function SessionsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-mono font-semibold text-foreground mb-2">Sessions</h1>
-      <p className="text-muted-foreground mb-8">Upcoming Vibe Coding classes. Click to see details and register.</p>
+      <p className="text-muted-foreground mb-8">Upcoming Vibe Coding sessions in digital health and medical web applications. Explore dates and register.</p>
       {withConfirmed.length === 0 ? (
         <p className="text-muted-foreground">No sessions yet. Check back later.</p>
       ) : (

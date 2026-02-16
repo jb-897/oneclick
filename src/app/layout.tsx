@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Vibe Coding Classes | Register",
-  description: "Register for Vibe Coding classes and workshops",
+  description: "Build digital health tools and medical web applications. Register for Vibe Coding classes in healthcare innovation and practical development.",
 };
 
 export default function RootLayout({

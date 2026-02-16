@@ -23,19 +23,20 @@ export function HeroSection() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
       >
-        Hands-on workshops to level up your coding. Pick a session, register in one click, and get building.
+        Build digital health tools and medical web applications. Explore healthcare innovation through hands-on development — from idea to prototype.
       </motion.p>
       <motion.div
-        className="mt-10 flex flex-wrap justify-center gap-4"
+        className="mt-10 flex justify-center"
         initial={prefersReducedMotion ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.2 }}
       >
-        <Button asChild size="lg" className="font-mono">
-          <Link href="/sessions">View sessions</Link>
-        </Button>
-        <Button asChild variant="outline" size="lg" className="font-mono">
-          <Link href="/sessions">Browse dates</Link>
+        <Button
+          asChild
+          size="lg"
+          className="font-mono bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300"
+        >
+          <Link href="/sessions">Browse Dates & Join</Link>
         </Button>
       </motion.div>
     </section>
