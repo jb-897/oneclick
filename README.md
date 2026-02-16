@@ -5,7 +5,7 @@ A production-grade full-stack web app for registering to Vibe Coding classes. Pu
 ## Tech stack
 
 - **Next.js 16** (App Router) + TypeScript
-- **PostgreSQL** (Neon / Supabase / Render)
+- **PostgreSQL** (Supabase)
 - **Prisma ORM** (v6)
 - **Auth**: NextAuth.js v5 (Credentials, admin-only)
 - **Email**: Resend

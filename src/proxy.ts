@@ -1,7 +1,20 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth-edge";
 
 export default auth((req) => {
+  // #region agent log
+  fetch("http://127.0.0.1:7244/ingest/16d87d14-6f6d-46d3-a771-f71daf70004d", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      location: "proxy.ts",
+      message: "proxy ran",
+      data: { pathname: req.nextUrl.pathname, hasAuth: !!req.auth },
+      timestamp: Date.now(),
+      hypothesisId: "edge-bundle",
+    }),
+  }).catch(() => {});
+  // #endregion
   const { pathname } = req.nextUrl;
   const isAdminRoute = pathname.startsWith("/admin");
   const isAdminLogin = pathname.startsWith("/admin/login");
