@@ -1,0 +1,142 @@
+// Vibe Coding Class Registration Platform
+// PostgreSQL - use Neon, Supabase, or Render
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+}
+
+enum RegistrationStatus {
+  PENDING_CONFIRMATION
+  CONFIRMED
+  CANCELLED
+  EXPIRED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  passwordHash  String?   @map("password_hash")
+  role          UserRole  @default(ADMIN)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  accounts         Account[]
+  sessions         Session[]
+  auditLogs        AuditLog[]
+
+  @@map("users")
+}
+
+// NextAuth.js adapter models (Auth.js v5)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at       Int?
+  token_type       String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Event / class session
+model EventSession {
+  id                 String    @id @default(cuid())
+  date               DateTime  @db.Date
+  startTime          String    @map("start_time") // e.g. "14:00"
+  durationMinutes    Int       @map("duration_minutes")
+  place              String
+  totalSpots         Int       @map("total_spots")
+  utilities          String[]  // e.g. ["laptop", "charger"]
+  description        String?   @db.Text
+  level              String?   // e.g. "beginner"
+  tags               String[]  // e.g. ["python", "web"]
+  registrationOpen   Boolean   @default(true) @map("registration_open")
+  cancelledAt        DateTime? @map("cancelled_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  registrations Registration[]
+
+  @@map("event_sessions")
+}
+
+model Registration {
+  id                         String             @id @default(cuid())
+  sessionId                  String             @map("session_id")
+  email                      String
+  name                       String
+  surname                    String
+  year                       String             // "Year 1" .. "Year 6" or "Other"
+  group                      String
+  university                 String
+  hasCodingExperience       Boolean            @map("has_coding_experience")
+  status                     RegistrationStatus @default(PENDING_CONFIRMATION)
+  confirmationTokenHash      String?            @map("confirmation_token_hash")
+  confirmationTokenExpiresAt DateTime?         @map("confirmation_token_expires_at")
+  confirmedAt                DateTime?         @map("confirmed_at")
+  createdAt                  DateTime          @default(now()) @map("created_at")
+  updatedAt                  DateTime          @updatedAt @map("updated_at")
+
+  session EventSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, email])
+  @@index([confirmationTokenHash])
+  @@map("registrations")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
