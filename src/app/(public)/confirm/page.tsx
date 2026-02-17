@@ -39,7 +39,7 @@ export default async function ConfirmPage({
 
   if (success) {
     title = "You're confirmed";
-    message = "Your registration is confirmed.";
+    message = "You are now registered for the session.";
   } else if (error === "missing") {
     title = "Link invalid";
     message = "No confirmation token was provided. Use the link from your email.";
