@@ -37,6 +37,14 @@ export async function sendConfirmationEmail(params: {
     subject: `Confirm your registration — ${sessionPlace}`,
     html: `
       <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';">
+        
+
+        <p>Hi ${escapeHtml(name)},</p>
+        <p>You registered for a Vibe Coding class at <strong>${escapeHtml(sessionPlace)}</strong> on ${escapeHtml(sessionDate)}.</p>
+        <p>Please confirm your registration by clicking the link below (valid for 24 hours):</p>
+        <p><a href="${confirmLink}" style="color: #00ffcc; text-decoration: underline;">Confirm registration</a></p>
+        <p>If you didn't request this, you can ignore this email.</p>
+        <p>— Best,<br />Your Team at the Department of Medical Education and Simulation</p>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin: 0 0 18px 0;">
           <tr>
             <td align="left" style="padding: 0;">
@@ -47,13 +55,6 @@ export async function sendConfirmationEmail(params: {
             </td>
           </tr>
         </table>
-
-        <p>Hi ${escapeHtml(name)},</p>
-        <p>You registered for a Vibe Coding class at <strong>${escapeHtml(sessionPlace)}</strong> on ${escapeHtml(sessionDate)}.</p>
-        <p>Please confirm your registration by clicking the link below (valid for 24 hours):</p>
-        <p><a href="${confirmLink}" style="color: #00ffcc; text-decoration: underline;">Confirm registration</a></p>
-        <p>If you didn't request this, you can ignore this email.</p>
-        <p>— Best,<br />Your Team at the Department of Medical Education and Simulation</p>
       </div>
     `,
   });
