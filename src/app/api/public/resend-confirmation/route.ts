@@ -8,7 +8,15 @@ import { generateConfirmationToken, getConfirmationExpiry } from "@/lib/crypto";
 import { sendConfirmationEmail } from "@/lib/email";
 import { REGISTRATION_STATUS } from "@/db/schema";
 
-const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
+function getBaseUrl(req: Request): string {
+  const explicit = process.env.APP_URL;
+  if (explicit) return explicit.replace(/\/$/, "");
+  const url = new URL(req.url);
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  const proto = req.headers.get("x-forwarded-proto") ?? url.protocol.replace(":", "");
+  if (host) return `${proto}://${host}`;
+  return url.origin;
+}
 
 export async function POST(req: Request) {
   try {
@@ -62,7 +70,8 @@ export async function POST(req: Request) {
         })
         .where(eq(registrations.id, row.registrationId));
 
-      const confirmLink = `${APP_URL}/api/public/confirm?token=${encodeURIComponent(raw)}`;
+      const baseUrl = getBaseUrl(req);
+      const confirmLink = `${baseUrl}/api/public/confirm?token=${encodeURIComponent(raw)}`;
       const sessionDate = new Date(row.date).toLocaleDateString("en-GB", {
         weekday: "long",
         day: "numeric",

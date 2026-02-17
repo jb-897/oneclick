@@ -9,59 +9,45 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <header className="sticky top-0 z-10 backdrop-blur-sm bg-card/30">
-        {/* Institutional bar */}
-        <div className="border-b border-border/60 bg-background/50">
-          <div className="container mx-auto px-4 h-10 flex items-center justify-between">
-            <Image
-              src="/umvas.svg"
-              alt="Department of Medical Education & Simulation (UMVAS)"
-              width={100}
-              height={28}
-              className="h-6 w-auto object-contain object-left"
-            />
-            <Image
-              src="/lfuk.svg"
-              alt="Faculty of Medicine (LFUK)"
-              width={80}
-              height={24}
-              className="h-5 w-auto object-contain object-right opacity-90"
-            />
-          </div>
-        </div>
-        {/* Main nav */}
-        <div className="border-b border-border">
-          <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-            <Link href="/" className="font-mono font-semibold text-primary">
+    <div className="min-h-screen flex flex-col bg-black text-foreground">
+      <header className="sticky top-0 z-20 backdrop-blur-md bg-black/70 border-b border-border/60">
+        {/* Main nav at the very top */}
+        <div className="container mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <Link href="/" className="font-mono font-semibold text-primary whitespace-nowrap">
               Vibe Coding
             </Link>
-            <nav className="flex items-center gap-6">
-              <Link href="/sessions" className="text-sm text-muted-foreground hover:text-foreground">
-                Sessions
-              </Link>
-              <a href="/admin" className="text-sm text-muted-foreground hover:text-foreground">Admin</a>
-            </nav>
+            <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground truncate">
+              <span className="truncate">
+                at the Department of Medical Education & Simulation · LFUK
+              </span>
+            </div>
           </div>
+          <nav className="flex items-center gap-6">
+            <Link href="/sessions" className="text-sm text-muted-foreground hover:text-foreground">
+              Sessions
+            </Link>
+            <a href="/admin" className="text-sm text-muted-foreground hover:text-foreground">Admin</a>
+          </nav>
         </div>
       </header>
       <main className="flex-1">{children}</main>
-      <footer className="border-t border-border mt-auto">
+      <footer className="border-t border-border/60 mt-auto bg-black">
         <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10 mb-4">
+          <div className="flex flex-row items-center justify-center gap-5 sm:gap-8 mb-4">
             <Image
-              src="/umvas.svg"
+              src="/UMVAS%20logo.jpg"
               alt="UMVAS"
-              width={100}
-              height={28}
-              className="h-7 w-auto object-contain"
+              width={340}
+              height={100}
+              className="h-12 sm:h-14 w-auto object-contain"
             />
             <Image
-              src="/lfuk.svg"
+              src="/LFUK%20logo.png"
               alt="LFUK"
-              width={80}
-              height={24}
-              className="h-6 w-auto object-contain opacity-90"
+              width={130}
+              height={41}
+              className="w-[130px] h-[41px] object-contain opacity-95"
             />
           </div>
           <p className="text-center text-sm text-muted-foreground max-w-xl mx-auto">

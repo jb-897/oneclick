@@ -17,17 +17,16 @@ const item = {
 };
 
 const gains = [
-  "Understanding of web-based medical tools",
   "Foundations of digital product thinking",
-  "Exposure to AI-driven healthcare concepts",
-  "Practical project-based development",
+  "Exposure to digital healthcare concepts and solutions",
+  "A skill of turining an idea into a functional prototype",
   "A new way of thinking about medicine",
 ];
 
 const whoFor = [
   "Medical students curious about digital health",
-  "Future clinicians interested in AI",
-  "Those who want to build instead of just consume technology",
+  "Future medical innovators",
+  "Those who want to build instead of just consume digital medical solutions",
 ];
 
 export function AboutSection() {
@@ -36,7 +35,7 @@ export function AboutSection() {
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <section ref={ref} className="relative w-full border-t border-border bg-card/20">
+    <section ref={ref} className="relative w-full bg-card/20">
       <div className="container mx-auto px-4 py-16 md:py-24">
         <motion.div
           variants={prefersReducedMotion ? undefined : container}
@@ -56,11 +55,11 @@ export function AboutSection() {
           >
             <p>
               Have you ever thought about building something that actually improves medicine?
-              A tool for patients. A workflow for clinicians. A web application that solves a real healthcare problem.
+              A solution for patients. A workflow for clinicians. A web application that helps with a real healthcare problem.
             </p>
             <p>
-              Vibe Coding introduces medical students to practical digital development — from idea to functional prototype.
-              You will not just learn syntax. You will learn how to turn clinical problems into digital solutions.
+              Vibe Coding course at the department of medical education and simulation introduces medical students to practical digital development — from idea to functional prototype.
+              You will not just learn syntax. You will learn how to turn your digital health ideas into real solutions.
             </p>
           </motion.div>
 
