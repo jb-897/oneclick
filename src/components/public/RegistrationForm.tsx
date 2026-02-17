@@ -138,7 +138,7 @@ export function RegistrationForm({ sessionId }: { sessionId: string }) {
             <FormItem>
               <FormLabel>Group</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. A1" className="font-mono" {...field} />
+                <Input placeholder="e.g. 12" className="font-mono" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -149,9 +149,9 @@ export function RegistrationForm({ sessionId }: { sessionId: string }) {
           name="university"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>University</FormLabel>
+              <FormLabel>University / Faculty</FormLabel>
               <FormControl>
-                <Input placeholder="Your university" className="font-mono" {...field} />
+                <Input placeholder="e.g. LFUK / Medical Faculty UK" className="font-mono" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
